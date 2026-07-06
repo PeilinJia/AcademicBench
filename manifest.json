@@ -1,0 +1,52 @@
+{
+  "config": {
+    "annotation_dir": "E:\\PyProjects\\AcademicBench\\data\\annotations",
+    "output": "E:\\PyProjects\\AcademicBench\\benchmark_dataset.json",
+    "seed": 42,
+    "max_per_type": 1,
+    "question_types": [
+      "element_presence_mcq",
+      "element_absence_mcq",
+      "relation_successor_hidden_abstain_mcq",
+      "relation_successor_multiselect",
+      "relation_containment_hidden_abstain_mcq",
+      "relation_containment_multiselect",
+      "relation_edge_label_hidden_abstain_mcq",
+      "relation_multihop_multiselect",
+      "function_summary_open"
+    ],
+    "hidden_abstain_unanswerable_ratio": 0.5,
+    "jsonl": false,
+    "split": false,
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
+    "test_ratio": 0.1
+  },
+  "statistics": {
+    "full": {
+      "num_samples": 1910,
+      "num_images": 300,
+      "by_level": {
+        "L1": 598,
+        "L2": 1012,
+        "L3": 300
+      },
+      "by_question_type": {
+        "element_presence_mcq": 300,
+        "element_absence_mcq": 298,
+        "relation_successor_hidden_abstain_mcq": 232,
+        "relation_containment_hidden_abstain_mcq": 232,
+        "relation_multihop_multiselect": 274,
+        "function_summary_open": 300,
+        "relation_successor_multiselect": 116,
+        "relation_containment_multiselect": 65,
+        "relation_edge_label_hidden_abstain_mcq": 93
+      },
+      "by_answer_type": {
+        "single_choice": 1218,
+        "multi_select": 392,
+        "open": 300
+      }
+    }
+  }
+}
