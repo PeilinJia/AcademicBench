@@ -13,34 +13,19 @@ Academic framework diagrams are widely used in research papers to describe syste
 AcademicBench evaluates MLLMs across three levels of academic diagram understanding:
 
 1. **Element Perception**  
-   Identifying entities, modules, components, and visual elements in academic diagrams.
+   Identifying entities, modules, components, and visual elements in academic framework diagrams.
 
 2. **Relation Cognition**  
-   Understanding directed relations, edge labels, dependencies, and module interactions.
+   Understanding directed relations, containment relations, edge labels, successor relations, and multi-hop reasoning chains.
 
 3. **Function Summarization**  
    Summarizing the overall function and high-level purpose of an academic framework diagram.
 
 The benchmark further introduces **hidden abstention testing**, where unanswerable relation queries are mixed with answerable questions to evaluate whether models over-answer when queried relations are absent.
 
----
-
-## Benchmark Pipeline
-
-```mermaid
-flowchart LR
-    A[Academic Framework Diagrams] --> B[Graph-based Annotation]
-    B --> C[Automatic Question Generation]
-    C --> D[L1: Element Perception]
-    C --> E[L2: Relation Cognition]
-    C --> F[L3: Function Summarization]
-    E --> G[Hidden Abstention Testing]
-    D --> H[MLLM Evaluation]
-    E --> H
-    F --> H
-    G --> H
-    H --> I[Metrics and Error Analysis]
-```
+<p align="center">
+  <img src="figures/fig1_overall_levels.png" width="780">
+</p>
 
 ---
 
@@ -51,92 +36,138 @@ AcademicBench currently contains:
 | Item | Scale |
 |---|---:|
 | Academic framework diagrams | **300** |
-| Automatically generated questions | **~1,910** |
-| Question types | **9** |
+| Automatically generated questions | **1,910** |
+| L1 questions | **598** |
+| L2 questions | **1,012** |
+| L3 questions | **300** |
 | Evaluation levels | **3** |
 | Evaluated MLLMs | **9** |
 
 ---
 
-## Annotation Schema
+## Benchmark Pipeline
 
-Each academic framework diagram is annotated as a directed graph. The annotation includes typed entities, directed relations, edge labels, and a global functional summary.
+The full AcademicBench pipeline consists of five main stages: figure collection, manual selection and preparation, graph-based annotation, automatic question generation, and MLLM evaluation.
 
 ```mermaid
-flowchart TD
-    D[Academic Diagram] --> E[Typed Entities]
-    D --> R[Directed Relations]
-    D --> L[Edge Labels]
-    D --> S[Function Summary]
-    E --> Q[Question Generation]
-    R --> Q
-    L --> Q
-    S --> Q
+flowchart LR
+    A[arXiv / Paper Collection] --> B[Figure Extraction and Gallery Review]
+    B --> C[Manual Diagram Selection]
+    C --> D[Graph-based Annotation]
+    D --> E[Benchmark Question Generation]
+    E --> F[Question Safety Validation]
+    F --> G[MLLM Evaluation]
+    G --> H[Metrics and Error Analysis]
+    H --> I[Visualization and Human Check]
 ```
+
+The project first collects candidate figures from research papers, then manually selects academic framework diagrams. Each selected diagram is annotated as a structured graph and converted into benchmark questions through an automatic generation pipeline. The generated questions are validated before being used for MLLM evaluation and error analysis.
+
+<p align="center">
+  <img src="figures/fig4_parse_stages.png" width="780">
+</p>
+
+---
+
+## Annotation Schema
+
+Each academic framework diagram is annotated as a directed graph. The annotation includes a diagram-level summary, typed entities, and relations.
+
+The current annotation schema uses:
+
+- **Entities:** `Node`, `Container`
+- **Relations:** `flows_to`, `contains`, `connects_to`
+- **Diagram-level summary:** a global functional description of the diagram
 
 Example anonymized annotation:
 
 ```json
 {
-  "diagram_id": "sample_001",
-  "diagram_type": "model_architecture",
+  "image_id": "sample_001",
+  "paper_id": "anonymous_paper",
+  "summary": "The diagram describes a modular architecture that transforms input data into predictions through feature extraction and reasoning.",
   "entities": [
     {
       "id": "E1",
-      "type": "module",
-      "name": "Input Encoder"
+      "name": "Input Module",
+      "type": "Node"
     },
     {
       "id": "E2",
-      "type": "module",
-      "name": "Reasoning Module"
+      "name": "Feature Extractor",
+      "type": "Node"
+    },
+    {
+      "id": "E3",
+      "name": "Reasoning Module",
+      "type": "Node"
     }
   ],
   "relations": [
     {
       "source": "E1",
       "target": "E2",
+      "type": "flows_to",
+      "label": "input data"
+    },
+    {
+      "source": "E2",
+      "target": "E3",
+      "type": "flows_to",
       "label": "feature representation"
     }
-  ],
-  "function_summary": "The framework encodes input data and performs reasoning through modular interaction."
+  ]
 }
 ```
 
-This annotation supports automatic question generation for element identification, relation reasoning, and diagram-level functional abstraction.
+This annotation supports graph-based queries such as entity lookup, incoming and outgoing edges, successor retrieval, containment relations, edge-label reasoning, multi-hop path search, and negative relation sampling.
 
 ---
 
-## Task Design
+## Question Generation
 
-AcademicBench contains **nine question types** across three levels.
+AcademicBench automatically generates questions from graph annotations.
+
+The current question generation pipeline covers:
+
+- **L1 Element Perception**
+  - Element presence
+  - Element absence
+  - Basic entity-level recognition
+
+- **L2 Relation Cognition**
+  - Successor relation reasoning
+  - Containment relation reasoning
+  - Edge-label understanding
+  - Multi-hop relation reasoning
+  - Hidden abstention on absent relations
+
+- **L3 Function Summarization**
+  - Diagram-level function summary
+  - High-level purpose understanding
 
 ```mermaid
-flowchart TB
-    T[AcademicBench Question Types] --> L1[L1: Element Perception]
-    T --> L2[L2: Relation Cognition]
-    T --> L3[L3: Function Summarization]
-
-    L1 --> L1A[Entity Identification]
-    L1 --> L1B[Element Attribute Recognition]
-    L1 --> L1C[Local Component Understanding]
-
-    L2 --> L2A[Relation Recognition]
-    L2 --> L2B[Edge Direction Understanding]
-    L2 --> L2C[Edge Label Interpretation]
-    L2 --> L2D[Hidden Abstention]
-
-    L3 --> L3A[Global Function Summary]
-    L3 --> L3B[Diagram-level Purpose Understanding]
+flowchart TD
+    A[Annotation JSON] --> B[DiagramGraph]
+    B --> C[L1 Element Questions]
+    B --> D[L2 Relation Questions]
+    B --> E[L3 Function Questions]
+    D --> F[Negative Relation Sampling]
+    F --> G[Hidden Abstention Questions]
+    C --> H[Question Safety Validator]
+    D --> H
+    E --> H
+    G --> H
+    H --> I[benchmark_dataset.json]
+    H --> J[manifest.json]
 ```
 
-| Level | Reasoning Dimension | Goal |
-|---|---|---|
-| L1 | Element Perception | Identify entities, modules, and visual components |
-| L2 | Relation Cognition | Infer directed relations, edge labels, and relation semantics |
-| L3 | Function Summarization | Summarize the overall function of the framework diagram |
+Question generation is implemented mainly through:
 
-The L2 relation cognition level includes **hidden abstention testing**, requiring models to avoid unsupported answers when queried relations are absent.
+- `src/logic_engine.py`
+- `src/prompt_generator.py`
+- `question_safety_validator.py`
+- `generate_benchmark.py`
 
 ---
 
@@ -144,7 +175,7 @@ The L2 relation cognition level includes **hidden abstention testing**, requirin
 
 In ordinary visual question answering, a model is usually expected to answer every question. However, in academic framework diagrams, some queried relations may not exist in the diagram.
 
-AcademicBench therefore introduces hidden abstention testing:
+AcademicBench therefore introduces **hidden abstention testing**:
 
 - Answerable relation questions and unanswerable relation questions are mixed together.
 - The model is not explicitly told which questions are unanswerable.
@@ -155,11 +186,37 @@ flowchart LR
     Q[Relation Query] --> A{Is the queried relation shown?}
     A -->|Yes| B[Answer with the relation]
     A -->|No| C[Abstain / state that no such relation is shown]
-    C --> D[Correct hidden abstention]
-    B --> E[Relation reasoning score]
+    B --> D[Relation reasoning score]
+    C --> E[Correct hidden abstention]
 ```
 
-This design helps evaluate whether MLLMs can distinguish between **inferred relations** and **non-existent relations** in structured academic diagrams.
+This design helps evaluate whether MLLMs can distinguish between **supported relations** and **non-existent relations** in structured academic diagrams.
+
+<p align="center">
+  <img src="figures/fig2_abstention.png" width="780">
+</p>
+
+---
+
+## Evaluation
+
+The evaluation pipeline loads `benchmark_dataset.json` and diagram images, sends questions to multimodal model backends, parses model responses, and aggregates metrics.
+
+The main evaluation entry point is:
+
+```bash
+python "Run evaluation.py"
+```
+
+The evaluation script supports multiple model backends, including OpenRouter-compatible APIs and other mainstream model providers. It also supports image compression, retry logic, JSONL caching, answer parsing, open-ended response judging, and metric aggregation.
+
+The main output files include:
+
+- `results/cache.jsonl`
+- `results/results_detail.json`
+- `results/metrics.json`
+- `results/human_check_l2.json`
+- `results/l2_review.html`
 
 ---
 
@@ -174,19 +231,15 @@ Main findings include:
 - Non-abstention rates on unanswerable relation queries range from **26.2% to 99.4%**.
 - A human check on sampled L2 questions reaches **95.4%**, suggesting that the observed performance gap mainly reflects model limitations rather than ambiguous question design.
 
+<p align="center">
+  <img src="figures/fig3_qtype_heatmap.png" width="780">
+</p>
+
 ---
 
-## Error Taxonomy
+## Error Analysis
 
-```mermaid
-flowchart TD
-    E[Observed Error Modes] --> E1[Element Recognition Errors]
-    E --> E2[Directionality Errors]
-    E --> E3[Edge Label Misinterpretation]
-    E --> E4[Relation Hallucination]
-    E --> E5[Over-answering on Hidden Abstention Queries]
-    E --> E6[Function-level Oversimplification]
-```
+AcademicBench includes relation-level error analysis and human checking scripts for diagnosing model behavior on L2 questions.
 
 Common error modes include:
 
@@ -196,54 +249,156 @@ Common error modes include:
 2. **Directionality Errors**  
    Models recognize that two entities are related but misunderstand the direction of the relation.
 
-3. **Edge Label Misinterpretation**  
+3. **Containment Errors**  
+   Models fail to correctly identify whether an entity is contained within another component or region.
+
+4. **Edge-label Misinterpretation**  
    Models incorrectly interpret the semantic meaning of an edge label or arrow annotation.
 
-4. **Relation Hallucination**  
+5. **Multi-hop Reasoning Failure**  
+   Models fail to correctly infer relations that require understanding multiple connected components or intermediate reasoning steps.
+
+6. **Relation Hallucination**  
    Models infer non-existent relations between entities when no such edge is present.
 
-5. **Over-answering on Hidden Abstention Queries**  
+7. **Over-answering on Hidden Abstention Queries**  
    Models provide unsupported answers for unanswerable relation queries instead of abstaining.
 
-6. **Function-level Oversimplification**  
-   Models produce generic summaries that fail to capture the specific purpose or mechanism of the academic framework.
-
 ---
 
-## Repository Contents
-
-This public summary repository currently provides:
-
-- Project overview and benchmark design
-- Anonymous sample annotations
-- Sample generated questions
-- Summary results and error taxonomy
-- Demo files for illustrating the evaluation workflow
-
-The full dataset, original diagram images, and complete evaluation outputs are not publicly released during the review period.
-
----
-
-## Suggested Public Directory Structure
-
-The following structure is designed for this public summary repository. It may differ from the full private research codebase.
+## Project Structure
 
 ```text
 AcademicBench/
-├── README.md
-├── docs/
-│   └── AcademicBench_OnePage_Summary.pdf
-├── examples/
-│   ├── sample_annotation_anonymized.json
-│   ├── sample_questions_anonymized.json
-│   └── sample_evaluation_output.json
+├── data/
+│   ├── annotations/        # Graph annotations for framework diagrams
+│   ├── images/             # Diagram images used by the benchmark
+│   └── pdfs/               # Source papers; not included in public release
+├── arxiv_data/             # Large-scale arXiv collection and figure extraction outputs
+│   ├── pdfs/
+│   ├── figures/
+│   ├── images/
+│   ├── figure1_pages/
+│   ├── gallery.html
+│   ├── metadata_figures.csv
+│   ├── processed_ids.txt
+│   ├── run.log
+│   └── state.json
+├── src/
+│   ├── data_loader.py
+│   ├── evaluator.py
+│   ├── logic_engine.py
+│   ├── model_client.py
+│   ├── prompt_generator.py
+│   └── __init__.py
 ├── results/
-│   ├── model_results_summary.csv
-│   └── error_taxonomy.md
-└── scripts/
-    ├── generate_questions_demo.py
-    ├── evaluate_demo.py
-    └── metrics_demo.py
+│   ├── cache.jsonl
+│   ├── cache.smoke.jsonl
+│   ├── metrics.json
+│   ├── results_detail.json
+│   ├── human_check_l2.json
+│   └── l2_review.html
+├── figures/
+│   ├── fig1_overall_levels.png
+│   ├── fig2_abstention.png
+│   ├── fig3_qtype_heatmap.png
+│   └── fig4_parse_stages.png
+├── annotation_tool.py
+├── arxiv_figure_gallery.py
+├── arxiv_pipeline_collector_v2.py
+├── generate_benchmark.py
+├── Run evaluation.py
+├── plot_results.py
+├── error_analysis.py
+├── human_check_l2.py
+├── inspect_l2.py
+├── l2_visual_report.py
+├── question_safety_validator.py
+├── benchmark_dataset.json
+├── manifest.json
+├── requirements.txt
+└── requirements_eval.txt
+```
+
+---
+
+## Main Components
+
+| File | Description |
+|---|---|
+| `annotation_tool.py` | Streamlit-based annotation interface for creating graph annotations from diagram images. |
+| `src/logic_engine.py` | Converts annotation JSON files into `DiagramGraph` objects and supports graph queries such as successors, containment, edge labels, multi-hop paths, and negative relation sampling. |
+| `src/prompt_generator.py` | Generates L1/L2/L3 benchmark questions from graph annotations. |
+| `question_safety_validator.py` | Validates generated questions, including answer consistency, option uniqueness, graph-groundedness, and multi-hop correctness. |
+| `generate_benchmark.py` | Main benchmark generation entry point. It reads `data/annotations/` and outputs `benchmark_dataset.json` and `manifest.json`. |
+| `Run evaluation.py` | Main evaluation entry point for running MLLM evaluation and producing result files. |
+| `plot_results.py` | Generates paper figures from `results/metrics.json`. |
+| `error_analysis.py` | Performs error analysis on model outputs. |
+| `human_check_l2.py` | Supports human checking for sampled L2 questions. |
+| `l2_visual_report.py` | Generates a visual review report for L2 evaluation. |
+| `arxiv_figure_gallery.py` | Supports arXiv figure extraction and gallery generation. |
+| `arxiv_pipeline_collector_v2.py` | Supports arXiv paper collection, PDF downloading, and figure extraction. |
+
+---
+
+## Reproducibility Notes
+
+This public repository is intended to provide a research overview, benchmark design, and reproducibility reference.
+
+Some files are not included in the public release due to size, licensing, privacy, or review-stage concerns:
+
+- `arxiv_data/`
+- Raw paper PDFs
+- Most original diagram images
+- Full model output caches
+- Full detailed evaluation outputs
+- API keys or local environment files
+
+The following files should **not** be publicly released:
+
+- `.env`
+- Files containing hardcoded API keys
+- Temporary test scripts with private credentials
+- Large raw PDF or figure extraction outputs
+
+---
+
+## Basic Usage
+
+### 1. Install dependencies
+
+```bash
+pip install -r requirements.txt
+pip install -r requirements_eval.txt
+```
+
+### 2. Launch the annotation tool
+
+```bash
+streamlit run annotation_tool.py
+```
+
+### 3. Generate benchmark questions
+
+```bash
+python generate_benchmark.py
+```
+
+This generates:
+
+- `benchmark_dataset.json`
+- `manifest.json`
+
+### 4. Run model evaluation
+
+```bash
+python "Run evaluation.py"
+```
+
+### 5. Generate result figures
+
+```bash
+python plot_results.py
 ```
 
 ---
@@ -258,6 +413,7 @@ AcademicBench can support future research on:
 - Hidden abstention and hallucination analysis
 - Benchmark construction for scientific and technical diagrams
 - Error diagnosis of MLLMs on relation-level reasoning tasks
+- Reliable abstention in multimodal reasoning systems
 
 ---
 
