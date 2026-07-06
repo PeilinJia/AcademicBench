@@ -4,7 +4,8 @@
 
 Academic framework diagrams are widely used in research papers to describe system architectures, algorithmic workflows, module relations, and conceptual structures. However, existing multimodal benchmarks mainly focus on natural images, document understanding, or statistical charts, providing limited diagnosis of whether MLLMs can reason over structured academic diagrams or abstain when a queried relation is absent.
 
-> **Status:** Submitted to NLPCC 2026, under review.
+> **Status:** Submitted to NLPCC 2026, under review.  
+> **Repository type:** Public demo release with core code, anonymized samples, aggregate metadata, and final figures.
 
 ---
 
@@ -64,7 +65,7 @@ AcademicBench follows a graph-centered benchmark construction pipeline:
 5. **MLLM evaluation and error analysis**  
    Nine mainstream MLLMs are evaluated on the generated questions, followed by metric aggregation, hidden abstention analysis, and human checking on sampled L2 questions.
 
-Raw paper PDFs, large-scale crawled figures, and crawler intermediate files are not included in this public repository due to size and licensing concerns.
+Raw paper PDFs, large-scale crawled figures, full image sets, full annotation files, model response caches, and crawler intermediate files are not included in this public repository due to size, licensing, and review-stage concerns.
 
 ---
 
@@ -83,10 +84,10 @@ Example anonymized annotation:
 
 ```json
 {
-  "image_id": "sample_001.png",
-  "paper_id": "anonymous_paper",
+  "image_id": "demo_degradation_pipeline.png",
+  "paper_id": "demo_degradation_pipeline",
   "summary": {
-    "text": "The framework transforms an input image into task-specific outputs through degradation classification and expert modules."
+    "text": "The framework takes an input image, classifies its degradation type, routes it to the corresponding restoration expert, and generates a restored output image."
   },
   "entities": [
     {
@@ -160,6 +161,28 @@ The question generation pipeline is mainly implemented through:
 
 ---
 
+## Sample Benchmark Format
+
+This public demo release provides `benchmark_dataset_sample.json` to illustrate the benchmark question format without releasing the full test set during the review period.
+
+Each question item contains fields such as:
+
+- `image_id`
+- `paper_id`
+- `level`
+- `question_type`
+- `question`
+- `answer_type`
+- `options`
+- `answer`
+- `answer_text`
+- `correct_option_indices`
+- `metadata`
+
+The sample file includes representative L1, L2, and L3 examples, including single-choice, multi-select, hidden abstention, and open-ended function summarization questions.
+
+---
+
 ## Hidden Abstention
 
 In ordinary visual question answering, a model is usually expected to answer every question. However, in academic framework diagrams, some queried relations may not exist in the diagram.
@@ -180,7 +203,7 @@ This design helps evaluate whether MLLMs can distinguish between **supported rel
 
 ## Evaluation Protocol
 
-The evaluation pipeline loads `benchmark_dataset.json` and diagram images, sends questions to multimodal model backends, parses model responses, and aggregates metrics.
+In the full private codebase, the evaluation pipeline loads the generated benchmark dataset and diagram images, sends questions to multimodal model backends, parses model responses, and aggregates metrics.
 
 The main evaluation script supports:
 
@@ -193,7 +216,7 @@ The main evaluation script supports:
 - Open-ended summary judging
 - Metric aggregation and result export
 
-The main output files include:
+The full evaluation produces files such as:
 
 - `results/cache.jsonl`
 - `results/results_detail.json`
@@ -201,7 +224,7 @@ The main output files include:
 - `results/human_check_l2.json`
 - `results/l2_review.html`
 
-These detailed result files are not fully included in the public demo release. The repository instead provides aggregated statistics and final visualization figures.
+These detailed result files are not included in the public demo release. The repository instead provides aggregate statistics, anonymized samples, and final visualization figures.
 
 ---
 
@@ -261,8 +284,7 @@ AcademicBench/
 │   ├── logic_engine.py           # DiagramGraph representation and graph query utilities
 │   └── prompt_generator.py       # Automatic L1/L2/L3 question generation
 ├── data/
-│   ├── annotations/              # Sample graph annotations
-│   └── images/                   # Sample framework diagram images
+│   └── samples/                  # Public anonymized sample data
 ├── figures/                      # Final figures used in the paper/demo
 │   ├── pipeline_overview.png
 │   ├── task_example.png
@@ -271,11 +293,11 @@ AcademicBench/
 │   ├── fig3_qtype_heatmap.png
 │   └── fig4_parse_stages.png
 ├── annotation_tool.py            # Streamlit annotation interface
-├── generate_benchmark.py         # Build benchmark_dataset.json from annotations
+├── generate_benchmark.py         # Build benchmark questions from annotations
 ├── Run evaluation.py             # Multimodal model evaluation runner
 ├── question_safety_validator.py  # Validation for generated questions
-├── benchmark_dataset.json        # Generated benchmark questions
-├── manifest.json                 # Benchmark generation config and statistics
+├── benchmark_dataset_sample.json # Public anonymized benchmark question sample
+├── manifest.json                 # Benchmark generation config and aggregate statistics
 ├── requirements.txt
 └── requirements_eval.txt
 ```
@@ -290,12 +312,14 @@ AcademicBench/
 | `src/logic_engine.py` | Converts annotation JSON files into `DiagramGraph` objects and supports graph queries such as successors, containment, edge labels, multi-hop paths, and negative relation sampling. |
 | `src/prompt_generator.py` | Generates L1/L2/L3 benchmark questions from graph annotations. |
 | `question_safety_validator.py` | Validates generated questions, including answer consistency, option uniqueness, graph-groundedness, and multi-hop correctness. |
-| `generate_benchmark.py` | Main benchmark generation entry point. It reads graph annotations and outputs `benchmark_dataset.json` and `manifest.json`. |
+| `generate_benchmark.py` | Main benchmark generation entry point. It reads graph annotations and outputs benchmark questions and aggregate metadata. |
 | `Run evaluation.py` | Main evaluation entry point for MLLM evaluation, model response parsing, caching, judging, and metric aggregation. |
 
 ---
 
 ## Basic Usage
+
+This public repository provides a demo release with anonymized sample data. The full benchmark image set, full annotation set, complete benchmark questions, and full model outputs are not included during the review period.
 
 ### 1. Install dependencies
 
@@ -316,10 +340,12 @@ streamlit run annotation_tool.py
 python generate_benchmark.py
 ```
 
-This generates:
+In the full private codebase, this step generates:
 
 - `benchmark_dataset.json`
 - `manifest.json`
+
+In this public demo release, `benchmark_dataset_sample.json` and `manifest.json` are provided to illustrate the dataset format and aggregate benchmark statistics.
 
 ### 4. Run model evaluation
 
@@ -327,11 +353,7 @@ This generates:
 python "Run evaluation.py"
 ```
 
-### 5. View aggregated metrics
-
-```bash
-python -c "import json; print(json.dumps(json.load(open('results/metrics.json', encoding='utf-8')), indent=2, ensure_ascii=False))"
-```
+The public demo release may require path adjustment before running the full evaluation, because the complete image set, complete annotations, and full benchmark dataset are not included.
 
 ---
 
@@ -343,6 +365,7 @@ The following materials are omitted from the public demo release:
 - Raw source paper PDFs
 - Complete benchmark diagram image set
 - Complete annotation set
+- Complete benchmark question set
 - Full model response caches
 - Full per-sample evaluation details
 - Internal analysis and human review scripts
