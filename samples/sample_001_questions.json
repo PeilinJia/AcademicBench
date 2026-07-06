@@ -1,0 +1,90 @@
+{
+    "image_id": "sample_001.png",
+    "questions": [
+        {
+            "question_id": "sample_l1_presence_001",
+            "level": "L1",
+            "question_type": "element_presence",
+            "question": "Which element is present in the diagram?",
+            "options": [
+                "Degradation Classifier",
+                "Text Translator",
+                "Audio Encoder",
+                "Search Engine"
+            ],
+            "answer": "Degradation Classifier"
+        },
+        {
+            "question_id": "sample_l1_absence_001",
+            "level": "L1",
+            "question_type": "element_absence",
+            "question": "Which module is absent from the diagram?",
+            "options": [
+                "Denoising Expert",
+                "Deblurring Expert",
+                "Sharpening Expert",
+                "Overexposure Expert"
+            ],
+            "answer": "Sharpening Expert"
+        },
+        {
+            "question_id": "sample_l2_successor_001",
+            "level": "L2",
+            "question_type": "relation_successor",
+            "question": "According to the arrows, which module does the Degradation Classifier route noisy inputs to?",
+            "options": [
+                "Denoising Expert",
+                "Deblurring Expert",
+                "Overexposure Expert",
+                "Clean Image"
+            ],
+            "answer": "Denoising Expert"
+        },
+        {
+            "question_id": "sample_l2_edge_label_001",
+            "level": "L2",
+            "question_type": "relation_edge_label",
+            "question": "What edge label connects the Degradation Classifier to the Deblurring Expert?",
+            "options": [
+                "noise",
+                "blur",
+                "overexposure",
+                "clean"
+            ],
+            "answer": "blur"
+        },
+        {
+            "question_id": "sample_l2_containment_001",
+            "level": "L2",
+            "question_type": "relation_containment",
+            "question": "Which module is contained in the Experts group?",
+            "options": [
+                "Denoising Expert",
+                "Input Image",
+                "Clean Image",
+                "Degradation Classifier"
+            ],
+            "answer": "Denoising Expert"
+        },
+        {
+            "question_id": "sample_l2_hidden_abstention_001",
+            "level": "L2",
+            "question_type": "hidden_abstention",
+            "question": "According to the diagram, what relation connects the Overexposure Corrected output back to the Degradation Classifier?",
+            "options": [
+                "feedback",
+                "feature fusion",
+                "image restoration",
+                "no such relation is shown"
+            ],
+            "answer": "no such relation is shown"
+        },
+        {
+            "question_id": "sample_l3_summary_001",
+            "level": "L3",
+            "question_type": "function_summarization",
+            "question": "What is the overall function of this framework diagram?",
+            "answer": "The framework classifies the degradation type of an input image and routes it to the corresponding restoration expert to generate the appropriate restored output."
+        }
+    ]
+}
