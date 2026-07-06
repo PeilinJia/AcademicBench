@@ -1,0 +1,48 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments
+.env
+.venv/
+venv/
+env/
+*.env
+
+# IDE
+.idea/
+.vscode/
+
+# Large raw data and intermediate crawling outputs
+arxiv_data/
+data/pdfs/
+data/raw/
+data/full_images/
+data/full_annotations/
+
+# Full benchmark data not included in public demo
+data/images/full/
+data/annotations/full/
+
+# Evaluation caches and detailed outputs
+results/cache.jsonl
+results/cache.smoke.jsonl
+results/results_detail.json
+results/raw_outputs/
+results/full_outputs/
+
+# Credentials and local debugging scripts
+test_qwen.py
+text_api.py
+hello_qwen.py
+debug_multihop_inspect.py
+
+# Legacy / experimental scripts
+main.py
+run_qwen25vl_eval.py
+
+# OS files
+.DS_Store
+Thumbs.db
