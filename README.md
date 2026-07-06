@@ -10,13 +10,13 @@ Academic framework diagrams are widely used in research papers to describe syste
 
 ## Overview
 
-AcademicBench evaluates MLLMs across three levels of academic diagram understanding:
+AcademicBench evaluates MLLMs on three levels of academic diagram understanding:
 
 1. **Element Perception**  
-   Identifying entities, modules, components, and visual elements in academic framework diagrams.
+   Identifying entities, modules, components, containers, and visual elements in academic framework diagrams.
 
 2. **Relation Cognition**  
-   Understanding directed relations, containment relations, edge labels, successor relations, and multi-hop reasoning chains.
+   Understanding directed flows, containment relations, edge labels, successor relations, and multi-hop logical chains.
 
 3. **Function Summarization**  
    Summarizing the overall function and high-level purpose of an academic framework diagram.
@@ -24,7 +24,7 @@ AcademicBench evaluates MLLMs across three levels of academic diagram understand
 The benchmark further introduces **hidden abstention testing**, where unanswerable relation queries are mixed with answerable questions to evaluate whether models over-answer when queried relations are absent.
 
 <p align="center">
-  <img src="figures/fig1_overall_levels.png" width="780">
+  <img src="figures/pipeline_overview.png" width="900">
 </p>
 
 ---
@@ -37,132 +37,121 @@ AcademicBench currently contains:
 |---|---:|
 | Academic framework diagrams | **300** |
 | Automatically generated questions | **1,910** |
-| L1 questions | **598** |
-| L2 questions | **1,012** |
-| L3 questions | **300** |
+| L1 element perception questions | **598** |
+| L2 relation cognition questions | **1,012** |
+| L3 function summarization questions | **300** |
 | Evaluation levels | **3** |
 | Evaluated MLLMs | **9** |
 
 ---
 
-## Benchmark Pipeline
+## Benchmark Construction Pipeline
 
-The full AcademicBench pipeline consists of five main stages: figure collection, manual selection and preparation, graph-based annotation, automatic question generation, and MLLM evaluation.
+AcademicBench follows a graph-centered benchmark construction pipeline:
 
-```mermaid
-flowchart LR
-    A[arXiv / Paper Collection] --> B[Figure Extraction and Gallery Review]
-    B --> C[Manual Diagram Selection]
-    C --> D[Graph-based Annotation]
-    D --> E[Benchmark Question Generation]
-    E --> F[Question Safety Validation]
-    F --> G[MLLM Evaluation]
-    G --> H[Metrics and Error Analysis]
-    H --> I[Visualization and Human Check]
-```
+1. **Diagram collection and selection**  
+   Academic framework diagrams are collected from research papers and filtered to retain clear diagrams with interpretable module structures, relations, and functional flow.
 
-The project first collects candidate figures from research papers, then manually selects academic framework diagrams. Each selected diagram is annotated as a structured graph and converted into benchmark questions through an automatic generation pipeline. The generated questions are validated before being used for MLLM evaluation and error analysis.
+2. **Graph-based annotation**  
+   Each diagram is manually annotated as a graph with typed entities, directed relations, edge labels, and a diagram-level functional summary.
 
-<p align="center">
-  <img src="figures/fig4_parse_stages.png" width="780">
-</p>
+3. **Automatic question generation**  
+   The graph annotation is converted into L1/L2/L3 questions through rule-based generation and graph querying.
+
+4. **Question safety validation**  
+   Generated questions are checked for option uniqueness, answer consistency, graph-groundedness, and multi-hop correctness.
+
+5. **MLLM evaluation and error analysis**  
+   Nine mainstream MLLMs are evaluated on the generated questions, followed by metric aggregation, hidden abstention analysis, and human checking on sampled L2 questions.
+
+Raw paper PDFs, large-scale crawled figures, and crawler intermediate files are not included in this public repository due to size and licensing concerns.
 
 ---
 
 ## Annotation Schema
 
-Each academic framework diagram is annotated as a directed graph. The annotation includes a diagram-level summary, typed entities, and relations.
+Each academic framework diagram is annotated as a graph with a diagram-level summary, typed entities, and directed relations.
 
 The current annotation schema uses:
 
-- **Entities:** `Node`, `Container`
-- **Relations:** `flows_to`, `contains`, `connects_to`
-- **Diagram-level summary:** a global functional description of the diagram
+- **Entity types:** `Node`, `Container`
+- **Relation predicates:** `flows_to`, `contains`, `connects_to`
+- **Edge text:** optional text labels attached to arrows or relations
+- **Function summary:** a global description of the diagram's purpose
 
 Example anonymized annotation:
 
 ```json
 {
-  "image_id": "sample_001",
+  "image_id": "sample_001.png",
   "paper_id": "anonymous_paper",
-  "summary": "The diagram describes a modular architecture that transforms input data into predictions through feature extraction and reasoning.",
+  "summary": {
+    "text": "The framework transforms an input image into task-specific outputs through degradation classification and expert modules."
+  },
   "entities": [
     {
-      "id": "E1",
-      "name": "Input Module",
+      "id": "e0",
+      "text": "Input Image",
       "type": "Node"
     },
     {
-      "id": "E2",
-      "name": "Feature Extractor",
+      "id": "e1",
+      "text": "Degradation Classifier",
       "type": "Node"
     },
     {
-      "id": "E3",
-      "name": "Reasoning Module",
-      "type": "Node"
+      "id": "e5",
+      "text": "Experts",
+      "type": "Container"
     }
   ],
   "relations": [
     {
-      "source": "E1",
-      "target": "E2",
-      "type": "flows_to",
-      "label": "input data"
+      "subject_id": "e0",
+      "predicate": "flows_to",
+      "object_id": "e1",
+      "edge_text": "",
+      "is_conflict": false
     },
     {
-      "source": "E2",
-      "target": "E3",
-      "type": "flows_to",
-      "label": "feature representation"
+      "subject_id": "e1",
+      "predicate": "flows_to",
+      "object_id": "e2",
+      "edge_text": "noise",
+      "is_conflict": false
+    },
+    {
+      "subject_id": "e5",
+      "predicate": "contains",
+      "object_id": "e2",
+      "edge_text": "",
+      "is_conflict": false
     }
   ]
 }
 ```
 
-This annotation supports graph-based queries such as entity lookup, incoming and outgoing edges, successor retrieval, containment relations, edge-label reasoning, multi-hop path search, and negative relation sampling.
+The graph representation supports entity lookup, incoming and outgoing relation queries, successor retrieval, containment reasoning, edge-label reasoning, multi-hop path search, and negative relation sampling.
 
 ---
 
-## Question Generation
+## Task Design
 
 AcademicBench automatically generates questions from graph annotations.
 
-The current question generation pipeline covers:
+The benchmark contains **nine question types** across three levels:
 
-- **L1 Element Perception**
-  - Element presence
-  - Element absence
-  - Basic entity-level recognition
+| Level | Main Ability | Question Focus |
+|---|---|---|
+| L1 | Element Perception | Element presence, element absence, entity-level recognition |
+| L2 | Relation Cognition | Successor reasoning, containment reasoning, edge-label understanding, multi-hop reasoning, hidden abstention |
+| L3 | Function Summarization | Diagram-level function and purpose summarization |
 
-- **L2 Relation Cognition**
-  - Successor relation reasoning
-  - Containment relation reasoning
-  - Edge-label understanding
-  - Multi-hop relation reasoning
-  - Hidden abstention on absent relations
+<p align="center">
+  <img src="figures/task_example.png" width="900">
+</p>
 
-- **L3 Function Summarization**
-  - Diagram-level function summary
-  - High-level purpose understanding
-
-```mermaid
-flowchart TD
-    A[Annotation JSON] --> B[DiagramGraph]
-    B --> C[L1 Element Questions]
-    B --> D[L2 Relation Questions]
-    B --> E[L3 Function Questions]
-    D --> F[Negative Relation Sampling]
-    F --> G[Hidden Abstention Questions]
-    C --> H[Question Safety Validator]
-    D --> H
-    E --> H
-    G --> H
-    H --> I[benchmark_dataset.json]
-    H --> J[manifest.json]
-```
-
-Question generation is implemented mainly through:
+The question generation pipeline is mainly implemented through:
 
 - `src/logic_engine.py`
 - `src/prompt_generator.py`
@@ -175,40 +164,34 @@ Question generation is implemented mainly through:
 
 In ordinary visual question answering, a model is usually expected to answer every question. However, in academic framework diagrams, some queried relations may not exist in the diagram.
 
-AcademicBench therefore introduces **hidden abstention testing**:
+AcademicBench introduces **hidden abstention testing**:
 
 - Answerable relation questions and unanswerable relation questions are mixed together.
 - The model is not explicitly told which questions are unanswerable.
 - A reliable model should abstain when the queried relation is absent instead of hallucinating unsupported relations.
 
-```mermaid
-flowchart LR
-    Q[Relation Query] --> A{Is the queried relation shown?}
-    A -->|Yes| B[Answer with the relation]
-    A -->|No| C[Abstain / state that no such relation is shown]
-    B --> D[Relation reasoning score]
-    C --> E[Correct hidden abstention]
-```
-
 This design helps evaluate whether MLLMs can distinguish between **supported relations** and **non-existent relations** in structured academic diagrams.
 
 <p align="center">
-  <img src="figures/fig2_abstention.png" width="780">
+  <img src="figures/fig2_abstention.png" width="820">
 </p>
 
 ---
 
-## Evaluation
+## Evaluation Protocol
 
 The evaluation pipeline loads `benchmark_dataset.json` and diagram images, sends questions to multimodal model backends, parses model responses, and aggregates metrics.
 
-The main evaluation entry point is:
+The main evaluation script supports:
 
-```bash
-python "Run evaluation.py"
-```
-
-The evaluation script supports multiple model backends, including OpenRouter-compatible APIs and other mainstream model providers. It also supports image compression, retry logic, JSONL caching, answer parsing, open-ended response judging, and metric aggregation.
+- Multiple model backends through API calls
+- Image compression before model calls
+- Concurrent requests
+- Retry logic
+- JSONL caching for resumable evaluation
+- Single-choice and multi-choice answer parsing
+- Open-ended summary judging
+- Metric aggregation and result export
 
 The main output files include:
 
@@ -217,6 +200,8 @@ The main output files include:
 - `results/metrics.json`
 - `results/human_check_l2.json`
 - `results/l2_review.html`
+
+These detailed result files are not fully included in the public demo release. The repository instead provides aggregated statistics and final visualization figures.
 
 ---
 
@@ -232,14 +217,14 @@ Main findings include:
 - A human check on sampled L2 questions reaches **95.4%**, suggesting that the observed performance gap mainly reflects model limitations rather than ambiguous question design.
 
 <p align="center">
-  <img src="figures/fig3_qtype_heatmap.png" width="780">
+  <img src="figures/fig3_qtype_heatmap.png" width="880">
 </p>
 
 ---
 
 ## Error Analysis
 
-AcademicBench includes relation-level error analysis and human checking scripts for diagnosing model behavior on L2 questions.
+AcademicBench includes relation-level error analysis and human checking for diagnosing model behavior on L2 questions.
 
 Common error modes include:
 
@@ -256,7 +241,7 @@ Common error modes include:
    Models incorrectly interpret the semantic meaning of an edge label or arrow annotation.
 
 5. **Multi-hop Reasoning Failure**  
-   Models fail to correctly infer relations that require understanding multiple connected components or intermediate reasoning steps.
+   Models fail to infer relations that require understanding multiple connected components or intermediate reasoning steps.
 
 6. **Relation Hallucination**  
    Models infer non-existent relations between entities when no such edge is present.
@@ -268,54 +253,29 @@ Common error modes include:
 
 ## Project Structure
 
+This public repository focuses on the core benchmark construction and evaluation workflow. Large raw data, crawled PDFs, extracted figure pools, API caches, full per-sample outputs, and temporary debugging scripts are excluded.
+
 ```text
 AcademicBench/
-├── data/
-│   ├── annotations/        # Graph annotations for framework diagrams
-│   ├── images/             # Diagram images used by the benchmark
-│   └── pdfs/               # Source papers; not included in public release
-├── arxiv_data/             # Large-scale arXiv collection and figure extraction outputs
-│   ├── pdfs/
-│   ├── figures/
-│   ├── images/
-│   ├── figure1_pages/
-│   ├── gallery.html
-│   ├── metadata_figures.csv
-│   ├── processed_ids.txt
-│   ├── run.log
-│   └── state.json
 ├── src/
-│   ├── data_loader.py
-│   ├── evaluator.py
-│   ├── logic_engine.py
-│   ├── model_client.py
-│   ├── prompt_generator.py
-│   └── __init__.py
-├── results/
-│   ├── cache.jsonl
-│   ├── cache.smoke.jsonl
-│   ├── metrics.json
-│   ├── results_detail.json
-│   ├── human_check_l2.json
-│   └── l2_review.html
-├── figures/
+│   ├── logic_engine.py           # DiagramGraph representation and graph query utilities
+│   └── prompt_generator.py       # Automatic L1/L2/L3 question generation
+├── data/
+│   ├── annotations/              # Sample graph annotations
+│   └── images/                   # Sample framework diagram images
+├── figures/                      # Final figures used in the paper/demo
+│   ├── pipeline_overview.png
+│   ├── task_example.png
 │   ├── fig1_overall_levels.png
 │   ├── fig2_abstention.png
 │   ├── fig3_qtype_heatmap.png
 │   └── fig4_parse_stages.png
-├── annotation_tool.py
-├── arxiv_figure_gallery.py
-├── arxiv_pipeline_collector_v2.py
-├── generate_benchmark.py
-├── Run evaluation.py
-├── plot_results.py
-├── error_analysis.py
-├── human_check_l2.py
-├── inspect_l2.py
-├── l2_visual_report.py
-├── question_safety_validator.py
-├── benchmark_dataset.json
-├── manifest.json
+├── annotation_tool.py            # Streamlit annotation interface
+├── generate_benchmark.py         # Build benchmark_dataset.json from annotations
+├── Run evaluation.py             # Multimodal model evaluation runner
+├── question_safety_validator.py  # Validation for generated questions
+├── benchmark_dataset.json        # Generated benchmark questions
+├── manifest.json                 # Benchmark generation config and statistics
 ├── requirements.txt
 └── requirements_eval.txt
 ```
@@ -324,42 +284,14 @@ AcademicBench/
 
 ## Main Components
 
-| File | Description |
+| Component | Description |
 |---|---|
-| `annotation_tool.py` | Streamlit-based annotation interface for creating graph annotations from diagram images. |
+| `annotation_tool.py` | Streamlit-based annotation interface for creating graph annotations from academic framework diagrams. |
 | `src/logic_engine.py` | Converts annotation JSON files into `DiagramGraph` objects and supports graph queries such as successors, containment, edge labels, multi-hop paths, and negative relation sampling. |
 | `src/prompt_generator.py` | Generates L1/L2/L3 benchmark questions from graph annotations. |
 | `question_safety_validator.py` | Validates generated questions, including answer consistency, option uniqueness, graph-groundedness, and multi-hop correctness. |
-| `generate_benchmark.py` | Main benchmark generation entry point. It reads `data/annotations/` and outputs `benchmark_dataset.json` and `manifest.json`. |
-| `Run evaluation.py` | Main evaluation entry point for running MLLM evaluation and producing result files. |
-| `plot_results.py` | Generates paper figures from `results/metrics.json`. |
-| `error_analysis.py` | Performs error analysis on model outputs. |
-| `human_check_l2.py` | Supports human checking for sampled L2 questions. |
-| `l2_visual_report.py` | Generates a visual review report for L2 evaluation. |
-| `arxiv_figure_gallery.py` | Supports arXiv figure extraction and gallery generation. |
-| `arxiv_pipeline_collector_v2.py` | Supports arXiv paper collection, PDF downloading, and figure extraction. |
-
----
-
-## Reproducibility Notes
-
-This public repository is intended to provide a research overview, benchmark design, and reproducibility reference.
-
-Some files are not included in the public release due to size, licensing, privacy, or review-stage concerns:
-
-- `arxiv_data/`
-- Raw paper PDFs
-- Most original diagram images
-- Full model output caches
-- Full detailed evaluation outputs
-- API keys or local environment files
-
-The following files should **not** be publicly released:
-
-- `.env`
-- Files containing hardcoded API keys
-- Temporary test scripts with private credentials
-- Large raw PDF or figure extraction outputs
+| `generate_benchmark.py` | Main benchmark generation entry point. It reads graph annotations and outputs `benchmark_dataset.json` and `manifest.json`. |
+| `Run evaluation.py` | Main evaluation entry point for MLLM evaluation, model response parsing, caching, judging, and metric aggregation. |
 
 ---
 
@@ -395,11 +327,29 @@ This generates:
 python "Run evaluation.py"
 ```
 
-### 5. Generate result figures
+### 5. View aggregated metrics
 
 ```bash
-python plot_results.py
+python -c "import json; print(json.dumps(json.load(open('results/metrics.json', encoding='utf-8')), indent=2, ensure_ascii=False))"
 ```
+
+---
+
+## Not Included in This Demo Release
+
+The following materials are omitted from the public demo release:
+
+- Full arXiv collection outputs
+- Raw source paper PDFs
+- Complete benchmark diagram image set
+- Complete annotation set
+- Full model response caches
+- Full per-sample evaluation details
+- Internal analysis and human review scripts
+- Legacy or experimental scripts
+- API keys, `.env` files, and local debugging files
+
+This release focuses on the core benchmark construction and evaluation pipeline rather than raw data collection artifacts or temporary development files.
 
 ---
 
@@ -426,4 +376,4 @@ The paper is currently under review. Citation information will be updated after 
 ## Contact
 
 Peilin Jia  
-Email: your_email@example.com
+Email: jpl546159@gmail.com
