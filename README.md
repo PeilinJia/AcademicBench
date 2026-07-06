@@ -10,7 +10,7 @@ Academic framework diagrams are widely used in research papers to describe syste
 
 ## Overview
 
-AcademicBench evaluates MLLMs across three levels of diagram understanding:
+AcademicBench evaluates MLLMs across three levels of academic diagram understanding:
 
 1. **Element Perception**  
    Identifying entities, modules, components, and visual elements in academic diagrams.
@@ -25,21 +25,54 @@ The benchmark further introduces **hidden abstention testing**, where unanswerab
 
 ---
 
+## Benchmark Pipeline
+
+```mermaid
+flowchart LR
+    A[Academic Framework Diagrams] --> B[Graph-based Annotation]
+    B --> C[Automatic Question Generation]
+    C --> D[L1: Element Perception]
+    C --> E[L2: Relation Cognition]
+    C --> F[L3: Function Summarization]
+    E --> G[Hidden Abstention Testing]
+    D --> H[MLLM Evaluation]
+    E --> H
+    F --> H
+    G --> H
+    H --> I[Metrics and Error Analysis]
+```
+
+---
+
 ## Benchmark Scale
 
 AcademicBench currently contains:
 
-- **300** academic framework diagrams
-- Approximately **1,910** automatically generated questions
-- **9** question types across three evaluation levels
-- **9** mainstream MLLMs evaluated
-- Graph-based annotations with typed entities, directed relational edges, edge labels, and global functional summaries
+| Item | Scale |
+|---|---:|
+| Academic framework diagrams | **300** |
+| Automatically generated questions | **~1,910** |
+| Question types | **9** |
+| Evaluation levels | **3** |
+| Evaluated MLLMs | **9** |
 
 ---
 
 ## Annotation Schema
 
 Each academic framework diagram is annotated as a directed graph. The annotation includes typed entities, directed relations, edge labels, and a global functional summary.
+
+```mermaid
+flowchart TD
+    D[Academic Diagram] --> E[Typed Entities]
+    D --> R[Directed Relations]
+    D --> L[Edge Labels]
+    D --> S[Function Summary]
+    E --> Q[Question Generation]
+    R --> Q
+    L --> Q
+    S --> Q
+```
 
 Example anonymized annotation:
 
@@ -78,6 +111,25 @@ This annotation supports automatic question generation for element identificatio
 
 AcademicBench contains **nine question types** across three levels.
 
+```mermaid
+flowchart TB
+    T[AcademicBench Question Types] --> L1[L1: Element Perception]
+    T --> L2[L2: Relation Cognition]
+    T --> L3[L3: Function Summarization]
+
+    L1 --> L1A[Entity Identification]
+    L1 --> L1B[Element Attribute Recognition]
+    L1 --> L1C[Local Component Understanding]
+
+    L2 --> L2A[Relation Recognition]
+    L2 --> L2B[Edge Direction Understanding]
+    L2 --> L2C[Edge Label Interpretation]
+    L2 --> L2D[Hidden Abstention]
+
+    L3 --> L3A[Global Function Summary]
+    L3 --> L3B[Diagram-level Purpose Understanding]
+```
+
 | Level | Reasoning Dimension | Goal |
 |---|---|---|
 | L1 | Element Perception | Identify entities, modules, and visual components |
@@ -98,6 +150,15 @@ AcademicBench therefore introduces hidden abstention testing:
 - The model is not explicitly told which questions are unanswerable.
 - A reliable model should abstain when the queried relation is absent instead of hallucinating unsupported relations.
 
+```mermaid
+flowchart LR
+    Q[Relation Query] --> A{Is the queried relation shown?}
+    A -->|Yes| B[Answer with the relation]
+    A -->|No| C[Abstain / state that no such relation is shown]
+    C --> D[Correct hidden abstention]
+    B --> E[Relation reasoning score]
+```
+
 This design helps evaluate whether MLLMs can distinguish between **inferred relations** and **non-existent relations** in structured academic diagrams.
 
 ---
@@ -115,9 +176,43 @@ Main findings include:
 
 ---
 
+## Error Taxonomy
+
+```mermaid
+flowchart TD
+    E[Observed Error Modes] --> E1[Element Recognition Errors]
+    E --> E2[Directionality Errors]
+    E --> E3[Edge Label Misinterpretation]
+    E --> E4[Relation Hallucination]
+    E --> E5[Over-answering on Hidden Abstention Queries]
+    E --> E6[Function-level Oversimplification]
+```
+
+Common error modes include:
+
+1. **Element Recognition Errors**  
+   Models fail to identify key modules, components, or text labels in academic framework diagrams.
+
+2. **Directionality Errors**  
+   Models recognize that two entities are related but misunderstand the direction of the relation.
+
+3. **Edge Label Misinterpretation**  
+   Models incorrectly interpret the semantic meaning of an edge label or arrow annotation.
+
+4. **Relation Hallucination**  
+   Models infer non-existent relations between entities when no such edge is present.
+
+5. **Over-answering on Hidden Abstention Queries**  
+   Models provide unsupported answers for unanswerable relation queries instead of abstaining.
+
+6. **Function-level Oversimplification**  
+   Models produce generic summaries that fail to capture the specific purpose or mechanism of the academic framework.
+
+---
+
 ## Repository Contents
 
-This public repository currently provides:
+This public summary repository currently provides:
 
 - Project overview and benchmark design
 - Anonymous sample annotations
@@ -129,17 +224,15 @@ The full dataset, original diagram images, and complete evaluation outputs are n
 
 ---
 
-## Directory Structure
+## Suggested Public Directory Structure
+
+The following structure is designed for this public summary repository. It may differ from the full private research codebase.
 
 ```text
 AcademicBench/
 ├── README.md
 ├── docs/
 │   └── AcademicBench_OnePage_Summary.pdf
-├── assets/
-│   ├── pipeline_overview.png
-│   ├── task_taxonomy.png
-│   └── result_summary.png
 ├── examples/
 │   ├── sample_annotation_anonymized.json
 │   ├── sample_questions_anonymized.json
@@ -177,4 +270,4 @@ The paper is currently under review. Citation information will be updated after 
 ## Contact
 
 Peilin Jia  
-Email: jpl546159@gmail.com
+Email: your_email@example.com
