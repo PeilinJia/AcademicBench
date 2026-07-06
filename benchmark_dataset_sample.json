@@ -1,0 +1,203 @@
+[
+    {
+        "image_id": "demo_degradation_pipeline.png",
+        "paper_id": "demo_degradation_pipeline",
+        "level": "L1",
+        "question_type": "element_presence_mcq",
+        "question": "Which of the following labels appears in the diagram?",
+        "answer_type": "single_choice",
+        "answer": "C",
+        "options": [
+            {
+                "label": "A",
+                "text": "Overexposure Corrected"
+            },
+            {
+                "label": "B",
+                "text": "Deblurred Image"
+            },
+            {
+                "label": "C",
+                "text": "Degradation Classifier"
+            },
+            {
+                "label": "D",
+                "text": "Denoised Image"
+            }
+        ],
+        "answer_text": "Degradation Classifier",
+        "correct_option_indices": [
+            2
+        ],
+        "metadata": {
+            "used_disambiguation": false
+        }
+    },
+    {
+        "image_id": "demo_degradation_pipeline.png",
+        "paper_id": "demo_degradation_pipeline",
+        "level": "L1",
+        "question_type": "element_absence_mcq",
+        "question": "Which option cannot be found in the diagram?",
+        "answer_type": "single_choice",
+        "answer": "D",
+        "options": [
+            {
+                "label": "A",
+                "text": "Input Image"
+            },
+            {
+                "label": "B",
+                "text": "Denoising Expert"
+            },
+            {
+                "label": "C",
+                "text": "Clean Image"
+            },
+            {
+                "label": "D",
+                "text": "Overexposure Corrected"
+            }
+        ],
+        "answer_text": "Overexposure Corrected",
+        "correct_option_indices": [
+            3
+        ]
+    },
+    {
+        "image_id": "demo_degradation_pipeline.png",
+        "paper_id": "demo_degradation_pipeline",
+        "level": "L2",
+        "question_type": "relation_successor_hidden_abstain_mcq",
+        "question": "According to the arrows in the diagram, which module does \"Input Image\" directly point to?",
+        "answer_type": "single_choice",
+        "answer": "B",
+        "options": [
+            {
+                "label": "A",
+                "text": "Denoising Expert"
+            },
+            {
+                "label": "B",
+                "text": "Degradation Classifier"
+            },
+            {
+                "label": "C",
+                "text": "Experts"
+            },
+            {
+                "label": "D",
+                "text": "Clean Image"
+            }
+        ],
+        "answer_text": "Degradation Classifier",
+        "correct_option_indices": [
+            1
+        ],
+        "metadata": {
+            "is_unanswerable": false,
+            "used_disambiguation": false
+        }
+    },
+    {
+        "image_id": "demo_degradation_pipeline.png",
+        "paper_id": "demo_degradation_pipeline",
+        "level": "L2",
+        "question_type": "relation_containment_multiselect",
+        "question": "Which modules appear inside the visual boundary of \"Experts\"? Select all that apply.",
+        "answer_type": "multi_select",
+        "answer": [
+            "A",
+            "B",
+            "C"
+        ],
+        "options": [
+            {
+                "label": "A",
+                "text": "Denoising Expert"
+            },
+            {
+                "label": "B",
+                "text": "Deblurring Expert"
+            },
+            {
+                "label": "C",
+                "text": "Overexposure Expert"
+            },
+            {
+                "label": "D",
+                "text": "Clean Image"
+            }
+        ],
+        "answer_text": [
+            "Denoising Expert",
+            "Deblurring Expert",
+            "Overexposure Expert"
+        ],
+        "correct_option_indices": [
+            0,
+            1,
+            2
+        ],
+        "metadata": {
+            "used_disambiguation": false,
+            "container_id": "e5",
+            "container_display": "Experts",
+            "child_ids": [
+                "e2",
+                "e3",
+                "e4"
+            ],
+            "child_displays": [
+                "Denoising Expert",
+                "Deblurring Expert",
+                "Overexposure Expert"
+            ]
+        }
+    },
+    {
+        "image_id": "demo_degradation_pipeline.png",
+        "paper_id": "demo_degradation_pipeline",
+        "level": "L2",
+        "question_type": "relation_successor_hidden_abstain_mcq",
+        "question": "According to the arrows in the diagram, which module does \"Clean Image\" directly point to?",
+        "answer_type": "single_choice",
+        "answer": "cannot_be_determined",
+        "options": [
+            {
+                "label": "A",
+                "text": "Denoised Image"
+            },
+            {
+                "label": "B",
+                "text": "Deblurred Image"
+            },
+            {
+                "label": "C",
+                "text": "Overexposure Corrected"
+            },
+            {
+                "label": "D",
+                "text": "Input Image"
+            }
+        ],
+        "answer_text": "cannot_be_determined",
+        "correct_option_indices": [],
+        "metadata": {
+            "is_unanswerable": true,
+            "unanswerable_reason": "no_usable_successor",
+            "used_disambiguation": false
+        }
+    },
+    {
+        "image_id": "demo_degradation_pipeline.png",
+        "paper_id": "demo_degradation_pipeline",
+        "level": "L3",
+        "question_type": "function_summary_open",
+        "question": "What does this diagram describe at a high level?",
+        "answer_type": "open",
+        "answer": "The diagram describes an image restoration pipeline. An Input Image is first analyzed by a Degradation Classifier, which routes the image to specialized modules inside Experts, including Denoising Expert, Deblurring Expert, and Overexposure Expert. These expert modules produce restored outputs such as Denoised Image, Deblurred Image, and Clean Image.",
+        "options": [],
+        "answer_text": "The diagram describes an image restoration pipeline. An Input Image is first analyzed by a Degradation Classifier, which routes the image to specialized modules inside Experts, including Denoising Expert, Deblurring Expert, and Overexposure Expert. These expert modules produce restored outputs such as Denoised Image, Deblurred Image, and Clean Image."
+    }
+]
