@@ -84,25 +84,55 @@ Example anonymized annotation:
 
 ```json
 {
-  "image_id": "demo_degradation_pipeline.png",
-  "paper_id": "demo_degradation_pipeline",
+  "image_id": "toy_multimodal_framework.png",
+  "paper_id": "anonymous_toy_example",
   "summary": {
-    "text": "The framework takes an input image, classifies its degradation type, routes it to the corresponding restoration expert, and generates a restored output image."
+    "text": "The framework encodes textual and visual inputs, fuses the representations, performs reasoning, and produces a final prediction with an explanation."
   },
   "entities": [
     {
       "id": "e0",
-      "text": "Input Image",
+      "text": "Text Input",
       "type": "Node"
     },
     {
       "id": "e1",
-      "text": "Degradation Classifier",
+      "text": "Image Input",
+      "type": "Node"
+    },
+    {
+      "id": "e2",
+      "text": "Text Encoder",
+      "type": "Node"
+    },
+    {
+      "id": "e3",
+      "text": "Visual Encoder",
+      "type": "Node"
+    },
+    {
+      "id": "e4",
+      "text": "Multimodal Fusion",
       "type": "Node"
     },
     {
       "id": "e5",
-      "text": "Experts",
+      "text": "Reasoning Module",
+      "type": "Node"
+    },
+    {
+      "id": "e6",
+      "text": "Prediction Head",
+      "type": "Node"
+    },
+    {
+      "id": "e7",
+      "text": "Explanation Generator",
+      "type": "Node"
+    },
+    {
+      "id": "e8",
+      "text": "Output Layer",
       "type": "Container"
     }
   ],
@@ -110,21 +140,63 @@ Example anonymized annotation:
     {
       "subject_id": "e0",
       "predicate": "flows_to",
-      "object_id": "e1",
-      "edge_text": "",
+      "object_id": "e2",
+      "edge_text": "text tokens",
       "is_conflict": false
     },
     {
       "subject_id": "e1",
       "predicate": "flows_to",
-      "object_id": "e2",
-      "edge_text": "noise",
+      "object_id": "e3",
+      "edge_text": "image patches",
+      "is_conflict": false
+    },
+    {
+      "subject_id": "e2",
+      "predicate": "flows_to",
+      "object_id": "e4",
+      "edge_text": "text features",
+      "is_conflict": false
+    },
+    {
+      "subject_id": "e3",
+      "predicate": "flows_to",
+      "object_id": "e4",
+      "edge_text": "visual features",
+      "is_conflict": false
+    },
+    {
+      "subject_id": "e4",
+      "predicate": "flows_to",
+      "object_id": "e5",
+      "edge_text": "joint representation",
       "is_conflict": false
     },
     {
       "subject_id": "e5",
+      "predicate": "flows_to",
+      "object_id": "e6",
+      "edge_text": "reasoning state",
+      "is_conflict": false
+    },
+    {
+      "subject_id": "e5",
+      "predicate": "flows_to",
+      "object_id": "e7",
+      "edge_text": "rationale",
+      "is_conflict": false
+    },
+    {
+      "subject_id": "e8",
       "predicate": "contains",
-      "object_id": "e2",
+      "object_id": "e6",
+      "edge_text": "",
+      "is_conflict": false
+    },
+    {
+      "subject_id": "e8",
+      "predicate": "contains",
+      "object_id": "e7",
       "edge_text": "",
       "is_conflict": false
     }
@@ -150,37 +222,36 @@ The benchmark contains **nine question types** across three levels:
 
 ### Anonymized Toy Example
 
-The following toy example is reconstructed for public demonstration. It does not reproduce any original source-paper figure.
+The following toy example is reconstructed only for public demonstration. It does not reproduce any original source-paper figure.
 
 ```mermaid
 flowchart LR
-    A["Input Image"] --> B["Degradation Classifier"]
+    T["Text Input"] --> TE["Text Encoder"]
+    I["Image Input"] --> VE["Visual Encoder"]
 
-    B -- "noise" --> C["Denoising Expert"]
-    B -- "blur" --> D["Deblurring Expert"]
-    B -- "overexposure" --> E["Overexposure Expert"]
+    TE -- "text features" --> F["Multimodal Fusion"]
+    VE -- "visual features" --> F
 
-    C --> F["Denoised Image"]
-    D --> G["Deblurred Image"]
-    E --> H["Exposure-Corrected Image"]
+    F -- "joint representation" --> R["Reasoning Module"]
 
-    B -. "clean / bypass" .-> I["Clean Image"]
+    R -- "reasoning state" --> P["Prediction Head"]
+    R -- "rationale" --> E["Explanation Generator"]
 
-    subgraph Expert_Group["Experts"]
-        C
-        D
+    subgraph O["Output Layer"]
+        P
         E
     end
 ```
 
 | Level | Example Question | Expected Answer |
 |---|---|---|
-| L1 Element Perception | Which label appears in the diagram? | Degradation Classifier |
-| L1 Element Absence | Which option cannot be found in the diagram? | Sharpening Expert |
-| L2 Relation Cognition | Which module does the classifier route noisy inputs to? | Denoising Expert |
-| L2 Containment | Which modules are inside the Experts group? | Denoising Expert, Deblurring Expert, Overexposure Expert |
-| L2 Hidden Abstention | Which module does Clean Image directly point to? | Cannot be determined |
-| L3 Function Summary | What does the diagram describe at a high level? | An image-restoration pipeline with classifier-based routing |
+| L1 Element Perception | Which label appears in the diagram? | Multimodal Fusion |
+| L1 Element Absence | Which option cannot be found in the diagram? | Retrieval Database |
+| L2 Relation Cognition | Which module receives both text features and visual features? | Multimodal Fusion |
+| L2 Edge-label Reasoning | What edge label connects Reasoning Module to Explanation Generator? | rationale |
+| L2 Containment Reasoning | Which modules are contained in Output Layer? | Prediction Head; Explanation Generator |
+| L2 Hidden Abstention | Which module does Prediction Head directly point to? | Cannot be determined |
+| L3 Function Summary | What does the diagram describe at a high level? | A multimodal reasoning pipeline that encodes text and image inputs, fuses their representations, performs reasoning, and produces prediction and explanation outputs |
 
 The question generation pipeline is mainly implemented through:
 
