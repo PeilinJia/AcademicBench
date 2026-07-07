@@ -148,9 +148,39 @@ The benchmark contains **nine question types** across three levels:
 | L2 | Relation Cognition | Successor reasoning, containment reasoning, edge-label understanding, multi-hop reasoning, hidden abstention |
 | L3 | Function Summarization | Diagram-level function and purpose summarization |
 
-<p align="center">
-  <img src="figures/task_example.png" width="900">
-</p>
+### Anonymized Toy Example
+
+The following toy example is reconstructed for public demonstration. It does not reproduce any original source-paper figure.
+
+```mermaid
+flowchart LR
+    A["Input Image"] --> B["Degradation Classifier"]
+
+    B -- "noise" --> C["Denoising Expert"]
+    B -- "blur" --> D["Deblurring Expert"]
+    B -- "overexposure" --> E["Overexposure Expert"]
+
+    C --> F["Denoised Image"]
+    D --> G["Deblurred Image"]
+    E --> H["Exposure-Corrected Image"]
+
+    B -. "clean / bypass" .-> I["Clean Image"]
+
+    subgraph Expert_Group["Experts"]
+        C
+        D
+        E
+    end
+```
+
+| Level | Example Question | Expected Answer |
+|---|---|---|
+| L1 Element Perception | Which label appears in the diagram? | Degradation Classifier |
+| L1 Element Absence | Which option cannot be found in the diagram? | Sharpening Expert |
+| L2 Relation Cognition | Which module does the classifier route noisy inputs to? | Denoising Expert |
+| L2 Containment | Which modules are inside the Experts group? | Denoising Expert, Deblurring Expert, Overexposure Expert |
+| L2 Hidden Abstention | Which module does Clean Image directly point to? | Cannot be determined |
+| L3 Function Summary | What does the diagram describe at a high level? | An image-restoration pipeline with classifier-based routing |
 
 The question generation pipeline is mainly implemented through:
 
@@ -287,7 +317,6 @@ AcademicBench/
 │   └── samples/                  # Public anonymized sample data
 ├── figures/                      # Final figures used in the paper/demo
 │   ├── pipeline_overview.png
-│   ├── task_example.png
 │   ├── fig1_overall_levels.png
 │   ├── fig2_abstention.png
 │   ├── fig3_qtype_heatmap.png
@@ -363,6 +392,7 @@ The following materials are omitted from the public demo release:
 
 - Full arXiv collection outputs
 - Raw source paper PDFs
+- Original source-paper figures
 - Complete benchmark diagram image set
 - Complete annotation set
 - Complete benchmark question set
@@ -373,6 +403,8 @@ The following materials are omitted from the public demo release:
 - API keys, `.env` files, and local debugging files
 
 This release focuses on the core benchmark construction and evaluation pipeline rather than raw data collection artifacts or temporary development files.
+
+All figures used for project illustration in this README are either author-created overview figures, generated from our own experimental results, or reconstructed as simplified toy examples for public demonstration. Original paper PDFs, original source-paper figures, and full benchmark images are not redistributed in this demo release.
 
 ---
 
